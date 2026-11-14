@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#233039">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>EngineSense</title>
+<style>
+:root{
+  --bg:#f3f1ec; --card:#ffffff; --ink:#1d2026; --muted:#6b7079; --line:#e2ded5; --soft:#f7f5f0;
+  --ok:#1f8a4c; --ok-soft:#e3f3e8; --watch:#b86f05; --watch-soft:#fbefd9; --alert:#c9252c; --alert-soft:#fbe3e3;
+  --idle:#5d6673; --idle-soft:#eceef1; --cal:#2d63c8; --cal-soft:#e2ebfb; --accent:#233039; --on-accent:#f3f1ec;
+}
+@media (prefers-color-scheme: dark){ :root{
+  --bg:#14171c; --card:#1d2128; --ink:#eef0f3; --muted:#9aa1ab; --line:#2c323b; --soft:#171a20;
+  --ok:#3fc27a; --ok-soft:#173226; --watch:#f0a83a; --watch-soft:#3a2c14; --alert:#ff5b5f; --alert-soft:#3d1a1c;
+  --idle:#9aa1ab; --idle-soft:#262b33; --cal:#6d9cf0; --cal-soft:#1a2740; --accent:#e9e4d8; --on-accent:#14171c; } }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 16px 36px}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.logo{width:44px;height:44px;border-radius:12px;background:var(--accent);display:grid;place-items:center;flex:none}
+.logo svg{width:26px;height:26px;color:var(--on-accent)}
+h1{font-size:21px;margin:0}
+.veh{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px}
+.veh input{font:inherit;color:var(--ink);background:transparent;border:0;border-bottom:1px dashed var(--line);padding:1px 2px;width:180px}
+.conn{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+button.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+.pill{font-size:12.5px;padding:5px 10px;border-radius:99px;background:var(--idle-soft);color:var(--muted);font-weight:600}
+.pill.on{background:var(--ok-soft);color:var(--ok)}
+.grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.col{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.status{border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:6px;min-height:200px;justify-content:center;transition:background .3s,color .3s}
+.status .label{font-size:12.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;opacity:.85}
+.status .state{font-size:60px;font-weight:800;line-height:1.05}
+.status .msg{font-size:17px;font-weight:500}
+.s-OK{background:var(--ok-soft);color:var(--ok)} .s-WATCH{background:var(--watch-soft);color:var(--watch)}
+.s-ALERT{background:var(--alert-soft);color:var(--alert);animation:pulse 1s ease-in-out infinite}
+.s-OFF,.s-SPIN,.s-NONE,.s-NOCAL{background:var(--idle-soft);color:var(--idle)} .s-CALIB{background:var(--cal-soft);color:var(--cal)}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(201,37,44,.16)}}
+@media (prefers-reduced-motion: reduce){.s-ALERT{animation:none}}
+.meter{margin-top:16px}
+.meter .row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px}
+.bar{height:14px;border-radius:99px;background:var(--idle-soft);position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;border-radius:99px;background:var(--ok);transition:width .3s,background .3s}
+.bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.55}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+@media (max-width:520px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--soft);border-radius:12px;padding:10px 12px}
+.stat .k{font-size:12px;color:var(--muted)} .stat .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+h2{font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.dx{border-left:5px solid var(--line)}
+.dx.sev-mild{border-left-color:var(--watch)} .dx.sev-moderate,.dx.sev-severe{border-left-color:var(--alert)}
+.dx .title{font-size:22px;font-weight:800;margin:2px 0 4px}
+.dx .what{color:var(--muted);margin:0 0 10px}
+.dx .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--idle-soft);color:var(--idle)}
+.chip.mild{background:var(--watch-soft);color:var(--watch)} .chip.moderate,.chip.severe{background:var(--alert-soft);color:var(--alert)}
+.dx h3{font-size:13.5px;margin:12px 0 6px}
+.dx ul{margin:0;padding-left:20px} .dx li{margin:3px 0}
+.dx .none{color:var(--muted)}
+.note{font-size:12px;color:var(--muted);margin-top:12px}
+canvas{width:100%;height:170px;display:block}
+.log{max-height:240px;overflow:auto;font-size:13.5px}
+.log div{display:grid;grid-template-columns:96px 78px 1fr;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.log time{color:var(--muted);font-variant-numeric:tabular-nums}
+.tag{font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px} .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+.toggles{display:flex;gap:16px;flex-wrap:wrap;font-size:13.5px;margin-top:12px}
+.toggles label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.err{color:var(--alert);font-size:13px;margin-top:8px;min-height:18px}
+.help{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.6}
+.help b{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3l2-6 4 12 3-9 2 3h6"/></svg></div>
+    <div>
+      <h1>EngineSense</h1>
+      <div class="veh">Vehicle: <input id="vehicle" aria-label="Vehicle name" value="My bike"></div>
+    </div>
+    <div class="conn">
+      <span class="pill" id="link">Not connected</span>
+      <button class="primary" id="btBle">Connect (Bluetooth)</button>
+      <button id="btUsb">Connect (USB)</button>
+      <button id="btCal" disabled title="USB only. Same as holding the device button for 1 s">Learn healthy engine</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <div class="card">
+        <div class="status s-NONE" id="status">
+          <div class="label">Engine status</div>
+          <div class="state" id="state">—</div>
+          <div class="msg" id="msg">Connect to your EngineSense device to start.</div>
+        </div>
+        <div class="meter">
+          <div class="row"><span>Difference from healthy engine</span><span id="scoreTxt">— / alert at —</span></div>
+          <div class="bar"><i id="fill" style="width:0%"></i><b id="thrMark" style="left:40%"></b></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">Monitoring</div><div class="v" id="upTime">0:00</div></div>
+          <div class="stat"><div class="k">Alerts</div><div class="v" id="nAlerts">0</div></div>
+          <div class="stat"><div class="k">Last alert</div><div class="v" id="lastAlert">—</div></div>
+          <div class="stat"><div class="k">Vibration</div><div class="v" id="rms">—</div></div>
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="sound" checked> Alarm sound</label>
+          <label><input type="checkbox" id="notify"> Pop-up notification</label>
+        </div>
+        <div class="err" id="err" role="alert"></div>
+      </div>
+
+      <div class="card dx" id="dx">
+        <h2>Diagnosis</h2>
+        <div id="dxBody"><p class="none">No fault detected. When the engine sounds abnormal, the likely cause and what to check will appear here.</p></div>
+        <div class="note">Suggestions are based on vibration patterns the device has learned. Always confirm with a mechanic.</div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="card">
+        <h2>Last 2 minutes</h2>
+        <canvas id="chart" width="900" height="340" aria-label="Difference from healthy engine over the last 2 minutes"></canvas>
+        <div class="legend"><span><i style="background:var(--ok)"></i>difference from healthy</span><span><i style="background:var(--alert)"></i>alert level</span><span><i style="background:var(--idle-soft)"></i>engine off or changing speed</span></div>
+      </div>
+      <div class="card">
+        <h2>Event log</h2>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="help">
+    <b>OK</b> sounds like the healthy engine it learned · <b>WATCH</b> a change is being observed; it becomes an ALERT only if it lasts about 10 s · <b>ALERT</b> abnormal vibration, inspect the engine ·
+    <b>STARTING / SLOWING</b> engine changing speed, not judged · <b>OFF</b> engine not running · <b>LEARNING</b> recording this engine's healthy sound (about 30 s, engine running normally).
+  </div>
+</div>
+
+<script>
+const NUS_SVC = "6e400001-b5a3-f393-e0a9-e50e24dcca9e", NUS_TX = "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
+const $ = id => document.getElementById(id);
+const NICE = {OK:"OK", WATCH:"WATCH", ALERT:"ALERT", OFF:"OFF", SPIN:"STARTING / SLOWING", CALIB:"LEARNING", NOCAL:"NOT SET UP", NONE:"—"};
+const MSG = {
+  OK:"Engine sounds normal.", WATCH:"Vibration changed. Observing it before deciding.", ALERT:"Abnormal vibration. Inspect the engine soon.",
+  OFF:"Engine is off.", SPIN:"Engine is starting or slowing down. Waiting for steady running.",
+  CALIB:"Learning this engine's healthy sound. Keep it running normally (about 30 s).",
+  NOCAL:"Not set up: with the engine running normally, hold the device button for 1 s."
+};
+const FAULTS = {
+  IMB: { title:"Imbalance or looseness", what:"A strong, regular shake once per revolution: something rotating is unbalanced or something is loose.",
+    causes:["Loose engine-mounting bolts or worn rubber engine mounts", "Wheel imbalance or a bent rim", "Clutch, flywheel or crankshaft imbalance", "A loose body panel, silencer bracket or accessory"],
+    checks:["Tighten the engine-mount, silencer and body-panel bolts", "Spin each wheel and look for wobble or a bent rim", "If it continues, have the clutch and flywheel inspected at a service centre"] },
+  RUB: { title:"Rubbing or friction", what:"Irregular, scraping vibration spread over many frequencies: two parts are rubbing or a moving part is dry.",
+    causes:["Drive chain too slack, dry, or rubbing on the chain guard", "Brake pads or shoes dragging on the disc or drum", "A dry or worn wheel or engine bearing", "CVT belt or its cover rubbing (scooters)"],
+    checks:["Check chain slack and lubricate the chain", "Lift the wheel and spin it: it should turn freely without scraping", "Check brake clearance and listen for grinding near the wheel bearings"] },
+  UNK: { title:"Unusual vibration", what:"The vibration has changed in a way that does not match any fault the device knows.",
+    causes:["A new or uncommon fault", "Something touching the sensor or the engine, or the sensor coming loose"],
+    checks:["Stop when it is safe and look for loose or damaged parts", "Check that the sensor is still firmly attached", "Have the engine inspected at a service centre"] }
+};
+let state = "NONE", thr = 3, score = 0, fault = "", hist = [], nAlerts = 0, audioCtx = null, writer = null, t0 = null, watchT = null, watchMax = 8;
+const faultCount = {};
+
+try { const v = localStorage.getItem("es_vehicle"); if (v) $("vehicle").value = v; } catch (e) {}
+$("vehicle").oninput = () => { try { localStorage.setItem("es_vehicle", $("vehicle").value); } catch (e) {} };
+
+function log(tag, text, color){
+  const d = document.createElement("div");
+  const t = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+  d.innerHTML = `<time>${t}</time><span class="tag" style="color:${color || "var(--ink)"}">${tag}</span><span></span>`;
+  d.lastChild.textContent = text; $("log").prepend(d);
+}
+function beep(){
+  if (!$("sound").checked) return;
+  try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.25].forEach(dt => { const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.value = 880; o.type = "square"; g.gain.value = 0.08; o.connect(g); g.connect(audioCtx.destination);
+      o.start(audioCtx.currentTime + dt); o.stop(audioCtx.currentTime + dt + 0.15); }); } catch (e) {}
+}
+function severity(){ const r = score / thr; return r >= 3 ? "severe" : r >= 1.5 ? "moderate" : "mild"; }
+function renderDx(){
+  const box = $("dx"), body = $("dxBody");
+  if (!fault || !(state === "WATCH" || state === "ALERT")){
+    box.className = "card dx";
+    const top = Object.entries(faultCount).sort((a, b) => b[1] - a[1])[0];
+    body.innerHTML = top ? `<p class="none">No fault right now. Earlier this session: <b></b>.</p>` :
+      `<p class="none">No fault detected. When the engine sounds abnormal, the likely cause and what to check will appear here.</p>`;
+    if (top) body.querySelector("b").textContent = FAULTS[top[0]].title;
+    return;
+  }
+  const f = FAULTS[fault] || FAULTS.UNK, sev = severity();
+  box.className = "card dx sev-" + sev;
+  body.innerHTML = `<div class="title"></div><p class="what"></p>
+    <div class="chips"><span class="chip ${sev}">Severity: ${sev}</span><span class="chip">${state === "ALERT" ? "Confirmed" : "Developing"}</span></div>
+    <h3>Common causes on a two-wheeler</h3><ul id="c1"></ul><h3>What to check</h3><ul id="c2"></ul>`;
+  body.querySelector(".title").textContent = (fault === "UNK" ? "" : "Likely cause: ") + f.title;
+  body.querySelector(".what").textContent = f.what;
+  f.causes.forEach(x => { const li = document.createElement("li"); li.textContent = x; body.querySelector("#c1").appendChild(li); });
+  f.checks.forEach(x => { const li = document.createElement("li"); li.textContent = x; body.querySelector("#c2").appendChild(li); });
+}
+// phone notification: Android Chrome needs a service worker for notifications; desktop can use new Notification()
+let swReg = null;
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(r => swReg = r).catch(() => {});
+function notifyPhone(title, body){
+  if (!$("notify").checked || !("Notification" in window) || Notification.permission !== "granted") return;
+  const opt = {body, tag: "enginesense", renotify: true, requireInteraction: true, vibrate: [300, 150, 300]};
+  if (swReg) swReg.showNotification(title, opt).catch(() => {});
+  else { try { new Notification(title, opt); } catch (e) {} }
+}
+function setState(s, sc, threshold, rms, code, watchS){
+  if (threshold > 0) thr = threshold; if (sc != null) score = sc;
+  const prev = state, prevFault = fault; state = s; fault = (s === "WATCH" || s === "ALERT") ? (code || fault) : "";
+  $("status").className = "status s-" + s; $("state").textContent = NICE[s] || s; $("msg").textContent = MSG[s] || "";
+  if (s === "WATCH" && watchS != null){ watchT = watchS;
+    $("msg").textContent = `Vibration changed. Observing: ${Math.min(watchS, watchMax)} of ${watchMax} s. It becomes an ALERT only if it lasts.`; }
+  const max = Math.max(thr * 2.5, score * 1.1, 1);
+  $("scoreTxt").textContent = `${score.toFixed(1)} / alert at ${thr.toFixed(1)}`;
+  $("fill").style.width = Math.min(100, 100 * score / max) + "%";
+  $("fill").style.background = score > thr ? "var(--alert)" : score > thr * 0.7 ? "var(--watch)" : "var(--ok)";
+  $("thrMark").style.left = (100 * thr / max) + "%";
+  if (rms != null && !isNaN(rms)) $("rms").textContent = rms.toFixed(0);
+  hist.push({t: Date.now(), s: score || 0, st: s}); if (hist.length > 500) hist.shift();
+  if (s !== prev){
+    const col = {OK:"var(--ok)", WATCH:"var(--watch)", ALERT:"var(--alert)", CALIB:"var(--cal)"}[s] || "var(--idle)";
+    log(NICE[s] || s, (s === "ALERT" || s === "WATCH") && fault ? (FAULTS[fault] || FAULTS.UNK).title : (MSG[s] || ""), col);
+    if (s === "ALERT"){
+      nAlerts++; $("nAlerts").textContent = nAlerts;
+      $("lastAlert").textContent = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+      if (fault) faultCount[fault] = (faultCount[fault] || 0) + 1;
+      beep(); if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+      notifyPhone("EngineSense: ALERT", (fault ? (FAULTS[fault] || FAULTS.UNK).title + ". " : "") + "Abnormal vibration lasted " + watchMax + " s. Inspect the engine.");
+    }
+  } else if (fault && fault !== prevFault && s === "ALERT") log("UPDATE", "Now looks like: " + (FAULTS[fault] || FAULTS.UNK).title, "var(--alert)");
+  renderDx(); draw();
+}
+// Bluetooth: "OK 0.9/3.0", "WATCH 2.1/1.4 IMB T3/8", "ALERT 5.7/3.0 IMB", "TRANSIENT 2.5s", "CALIBRATING", "CALIBRATED", "CALIB CANCELLED"
+function transient(sec){ log("SHORT", `Short change (${sec} s): went away by itself, not an alert.`, "var(--idle)"); }
+function parseBle(txt){
+  txt = txt.trim();
+  const tr = txt.match(/^TRANSIENT\s+([\d.]+)s/); if (tr) return transient(tr[1]);
+  if (txt.startsWith("CALIBRATING")) return setState("CALIB", 0, 0);
+  if (txt.startsWith("CALIBRATED")) return log("READY", "Healthy engine sound learned. Monitoring.", "var(--cal)");
+  if (txt.startsWith("CALIB CANCELLED")) return log("LEARN", "Learning cancelled: the engine did not run.", "var(--watch)");
+  const m = txt.match(/^([A-Z]+)\s+([\d.]+)\/([\d.]+)(?:\s+([A-Z]{3}))?/);
+  const w = txt.match(/\sT(\d+)\/(\d+)$/); if (w) watchMax = parseInt(w[2]);
+  if (m) setState(m[1], parseFloat(m[2]), parseFloat(m[3]), null, m[4], w ? parseInt(w[1]) : null);
+}
+// USB: "D,ms,STATE,score,thr,rms,votes,fault,match" and "# ..." lines
+function parseSerial(line){
+  line = line.trim();
+  if (line.startsWith("D,")){ const p = line.split(","); if (p.length >= 7) setState(p[2], parseFloat(p[3]), parseFloat(p[4]), parseFloat(p[5]), p[7] || "", p[9] != null ? Math.floor(parseFloat(p[9])) : null); }
+  else if (line.startsWith("# short change")){ const t = line.match(/\(([\d.]+) s\)/); transient(t ? t[1] : "?"); }
+  else if (line.startsWith("# alert after a change lasts")){ const t = line.match(/lasts (\d+) s/); if (t) watchMax = parseInt(t[1]); }
+  else if (line.startsWith("# calibration done")) log("READY", "Healthy engine sound learned. Monitoring.", "var(--cal)");
+  else if (line.startsWith("# calibration waiting")) log("LEARN", "Waiting for the engine to run…", "var(--cal)");
+  else if (line.startsWith("# calibration cancelled")) log("LEARN", "Learning cancelled: the engine did not run.", "var(--watch)");
+}
+function connected(how){ t0 = t0 || Date.now(); $("link").textContent = "Connected · " + how; $("link").className = "pill on"; $("err").textContent = ""; log("LINK", "Connected by " + how); }
+function lost(){ $("link").textContent = "Not connected"; $("link").className = "pill"; $("btCal").disabled = true; writer = null; log("LINK", "Connection lost", "var(--idle)"); }
+
+$("btBle").onclick = async () => {
+  if (!navigator.bluetooth){ $("err").textContent = "Bluetooth is not available in this browser. Use Google Chrome on a laptop or an Android phone."; return; }
+  try {
+    const dev = await navigator.bluetooth.requestDevice({filters:[{namePrefix:"EngineSense"}], optionalServices:[NUS_SVC]});
+    dev.addEventListener("gattserverdisconnected", lost);
+    const srv = await dev.gatt.connect();
+    const ch = await (await srv.getPrimaryService(NUS_SVC)).getCharacteristic(NUS_TX);
+    ch.addEventListener("characteristicvaluechanged", e => parseBle(new TextDecoder().decode(e.target.value)));
+    await ch.startNotifications(); connected("Bluetooth");
+  } catch (e) { $("err").textContent = "Bluetooth: " + e.message; }
+};
+$("btUsb").onclick = async () => {
+  if (!navigator.serial){ $("err").textContent = "USB connection needs Google Chrome or Edge on a laptop."; return; }
+  try {
+    const port = await navigator.serial.requestPort(); await port.open({baudRate:115200});
+    writer = port.writable.getWriter(); $("btCal").disabled = false; connected("USB");
+    const reader = port.readable.pipeThrough(new TextDecoderStream()).getReader(); let buf = "";
+    while (true){ const {value, done} = await reader.read(); if (done) break; buf += value;
+      let i; while ((i = buf.indexOf("\n")) >= 0){ parseSerial(buf.slice(0, i)); buf = buf.slice(i + 1); } }
+  } catch (e) { $("err").textContent = "USB: " + e.message + " (quit Arduino IDE first)"; lost(); }
+};
+$("btCal").onclick = async () => { if (writer){ await writer.write(new TextEncoder().encode("c")); log("LEARN", "Learning started from the app. Keep the engine running normally.", "var(--cal)"); } };
+$("notify").onchange = () => { if ($("notify").checked && "Notification" in window) Notification.requestPermission(); };
+
+function draw(){
+  const c = $("chart"), g = c.getContext("2d"), W = c.width, H = c.height, now = Date.now(), span = 120000;
+  const css = getComputedStyle(document.documentElement), col = v => css.getPropertyValue(v).trim();
+  g.clearRect(0, 0, W, H);
+  const pts = hist.filter(p => now - p.t <= span);
+  const max = Math.max(thr * 2.5, ...pts.map(p => p.s * 1.1), 1);
+  const X = t => W * (1 - (now - t) / span), Y = v => H - 24 - (H - 36) * v / max;
+  pts.forEach((p, i) => { if (["OFF","SPIN","CALIB","NOCAL"].includes(p.st)){ const nx = i + 1 < pts.length ? X(pts[i + 1].t) : W; g.fillStyle = col("--idle-soft"); g.fillRect(X(p.t), 0, nx - X(p.t), H - 24); } });
+  g.strokeStyle = col("--line"); g.lineWidth = 1; g.beginPath(); g.moveTo(0, H - 24); g.lineTo(W, H - 24); g.stroke();
+  g.fillStyle = col("--muted"); g.font = "22px -apple-system, Segoe UI, sans-serif";
+  ["−2 min", "−1 min", "now"].forEach((t, i) => { g.textAlign = ["left", "center", "right"][i]; g.fillText(t, [0, W / 2, W][i], H - 2); });
+  g.setLineDash([10, 8]); g.strokeStyle = col("--alert"); g.lineWidth = 3; g.beginPath(); g.moveTo(0, Y(thr)); g.lineTo(W, Y(thr)); g.stroke(); g.setLineDash([]);
+  g.strokeStyle = col("--ok"); g.lineWidth = 4; g.lineJoin = "round"; g.beginPath();
+  pts.forEach((p, i) => i ? g.lineTo(X(p.t), Y(p.s)) : g.moveTo(X(p.t), Y(p.s))); g.stroke();
+  if (t0){ const s = Math.floor((now - t0) / 1000); $("upTime").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
+}
+setInterval(draw, 1000); draw();
+</script>
+</body>
+</html>

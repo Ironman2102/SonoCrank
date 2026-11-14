@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.DS_Store
+.ipynb_checkpoints/
+
+# Recordings and generated outputs (keep the data/<condition>/ folders via .keep)
+data/**/*.npy
+results/
+test/
+*.tflite
+norm.h
+win.pkl
+ae_check.npy
+ae_norm.npz
+ae_review_results.json
+compare.png
